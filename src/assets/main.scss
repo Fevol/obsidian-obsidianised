@@ -1,0 +1,62 @@
+$stages: 1 2 3 4 5 6 7 8 9 10;
+$all_minerals: "stone" "iron" "gold" "diamond" "obsidian";
+$material_minerals: "stone" "iron" "gold" "diamond";
+
+:root {
+	@each $stage in $stages {
+		--obsidianised-stage-#{$stage}: url(./destroy_stage_#{$stage - 1}.png);
+	}
+
+	@each $mineral in $all_minerals {
+		--obsidianised-#{$mineral}: url(./#{$mineral}.png);
+	}
+	--obsidianised-obsidian: url(./obsidian.png);
+
+	--obsidianised-wood-pickaxe: url(./wood-pick.png);
+	@each $mineral in $material_minerals {
+		--obsidianised-#{$mineral}-pickaxe: url(./#{$mineral}-pick.png);
+	}
+
+	--obsidianised-pickaxe: var(--obsidianised-wood-pickaxe);
+}
+
+@each $stage in $stages {
+	.obsidianised-stage-#{$stage}:not(.modal-bg) {
+		overflow: hidden;
+		position: relative;
+	}
+
+	.obsidianised-stage-#{$stage}:before {
+		background-image: var(--obsidianised-stage-#{$stage});
+		background-repeat: repeat;
+		opacity: 0.2;
+		height: 100%;
+		z-index: -1;
+		position: absolute;
+		width: 100%;
+		content: '';
+		left: 0;
+		top: 0;
+	}
+	.vertical-tab-nav-item.obsidianised-stage-#{$stage}:before, button.obsidianised-stage-#{$stage}:before {
+		z-index: 0;
+	}
+}
+
+
+.obsidianised-block {
+	background-size: cover;
+	background-repeat: no-repeat;
+	width: 32px;
+	height: 32px;
+}
+
+@each $mineral in $all_minerals {
+	.obsidianised-#{$mineral} {
+		background-image: var(--obsidianised-#{$mineral});
+	}
+
+	.obsidianised-#{$mineral}:hover {
+		cursor: var(--obsidianised-#{$mineral}-pickaxe), auto;
+	}
+}

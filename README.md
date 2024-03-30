@@ -7,7 +7,7 @@
 
 ---
 A plugin for [Obsidian](https://obsidian.md) that aims to make your notes and entire workflow
-much more resilient against misclicks, accidental deletions, and other user errors.
+much more resilient against misclicks, accidental deletions, and other user errors. <br>
 No more shall you lose your precious text due to a slip of the finger!
 
 ---
@@ -16,11 +16,11 @@ No more shall you lose your precious text due to a slip of the finger!
 
 Install **_now_** via either:
 
-- [**BRAT**](https://github.com/TfTHacker/obsidian42-brat)**:** Run `Add a beta plugin for testing` with url `https://github.com/Fevol/obsidian-obsidianised`
-- **Manually:** create a folder `.obsidian/plugins/obsidianised`, add `main.js`, `manifest.json`, and `styles.css` from the latest release to this fodler.
+- [**BRAT**](https://github.com/TfTHacker/obsidian42-brat)**:** Run `Add a beta plugin for testing` with url `https://github.com/Fevol/obsidian-obsidianised`.
+- **Manually:** create a folder `.obsidian/plugins/obsidianised`, add `main.js`, `manifest.json`, and `styles.css` from the latest release to the new folder.
 
 
-## Uninstalling
+## Uninstallation
 Not happy with the added resilience that this plugin offers? <br>
 Do you not like having a safety net? <br>
 Would you rather prefer to live life on the edge, with the constant (non-zero) possibility of an _oopsie_-_woopsie_-i-accidentally-managed-to-delete-my-entire-vault scale event?

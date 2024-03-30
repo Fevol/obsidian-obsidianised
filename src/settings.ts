@@ -46,7 +46,6 @@ export class ObsidianisedSettingsTab extends PluginSettingTab {
 		});
 
 		if (lastUnlockedTier !== -1) {
-			console.log(lastUnlockedTier, Object.values(PICKAXE_TIERS).slice(1)[lastUnlockedTier], PICK_UPGRADE_PRICES[lastUnlockedTier as keyof typeof PICK_UPGRADE_PRICES]);
 			const lastTierName = Object.values(PICKAXE_TIERS).slice(1)[lastUnlockedTier];
 			const pickaxeDescFragment = document.createDocumentFragment();
 			pickaxeDescFragment.createEl('span', {text: `Requires ${PICK_UPGRADE_PRICES[lastUnlockedTier + 1 as keyof typeof PICK_UPGRADE_PRICES]} ${lastTierName.toLowerCase()} to craft`});

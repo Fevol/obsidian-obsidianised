@@ -119,6 +119,7 @@ export default class ObsidianisedPlugin extends Plugin {
 				return;
 
 			if (element.parentElement?.classList.contains('setting-item-control')) {
+				// @ts-ignore
 				const settingName = element.parentElement.parentElement!.children[0].children[0].innerText;
 				if (settingName === 'Obsidianised')
 					return;

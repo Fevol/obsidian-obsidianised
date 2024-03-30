@@ -7,11 +7,11 @@
 
 ---
 
-<center>
+<p align="center">
 A plugin for <a href="https://obsidian.md">Obsidian</a> that aims to make your notes and entire workflow
 much more resilient against misclicks, accidental deletions, and other user errors. <br>
 No more shall you lose your precious text due to a slip of the finger!
-</center>
+</p>
 
 ---
 

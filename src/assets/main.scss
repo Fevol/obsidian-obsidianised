@@ -21,12 +21,15 @@ $material_minerals: "stone" "iron" "gold" "diamond";
 }
 
 @each $stage in $stages {
-	.obsidianised-stage-#{$stage}:not(.modal-bg) {
+	.obsidianised-stage-#{$stage}:not(.modal-bg):not(.modal-close-button) {
 		overflow: hidden;
 		position: relative;
 	}
+	.modal.obsidianised-stage-#{$stage} {
+		z-index: 0;
+	}
 
-	.obsidianised-stage-#{$stage}:before {
+	.obsidianised-stage-#{$stage}:after {
 		background-image: var(--obsidianised-stage-#{$stage});
 		background-repeat: repeat;
 		opacity: 0.2;
@@ -38,11 +41,21 @@ $material_minerals: "stone" "iron" "gold" "diamond";
 		left: 0;
 		top: 0;
 	}
-	.vertical-tab-nav-item.obsidianised-stage-#{$stage}:before, button.obsidianised-stage-#{$stage}:before {
+	.vertical-tab-nav-item.obsidianised-stage-#{$stage}:after, button.obsidianised-stage-#{$stage}:after {
 		z-index: 0;
 	}
 }
 
+.obsidianised-title {
+	color: var(--text-accent-hover);
+}
+
+.obsidianised-title-accent {
+	color: var(--text-accent);
+	font-variant: small-caps;
+	font-weight: 900;
+	font-size: var(--h3-size);
+}
 
 .obsidianised-block {
 	background-size: cover;

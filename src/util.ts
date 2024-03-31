@@ -53,3 +53,16 @@ export const continousRandomInterval = (cb: () => void, min: number, max: number
 		stop: () => { breakLoop = true; }
 	}
 }
+
+
+export async function hashObject(obj: any) {
+	const copy = structuredClone(obj);
+	delete copy.player;
+
+	const encoder = new TextEncoder();
+	const data = encoder.encode(JSON.stringify(copy));
+	const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+	const hashArray = Array.from(new Uint8Array(hashBuffer));
+	const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+	return hashHex.substring(0, 4);
+}

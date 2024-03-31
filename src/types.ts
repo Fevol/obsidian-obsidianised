@@ -38,5 +38,7 @@ export interface ObsidianisedSettings {
 		disableDiamondGeneration: boolean,
 		disableObsidianGeneration: boolean,
 	},
-	playerWon: boolean
+	playerWon: boolean,
+	playerTemp?: boolean,
+	player: string
 }

@@ -57,6 +57,6 @@ $material_minerals: "stone" "iron" "gold" "diamond";
 	}
 
 	.obsidianised-#{$mineral}:hover {
-		cursor: var(--obsidianised-#{$mineral}-pickaxe), auto;
+		cursor: var(--obsidianised-pickaxe), auto;
 	}
 }

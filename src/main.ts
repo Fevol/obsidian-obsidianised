@@ -1,16 +1,26 @@
 import {Notice, Plugin} from 'obsidian';
 import {ObsidianisedSettingsTab} from "./settings";
-import {ObsidianisedSettings} from "./types";
-import {addRandomInterval, continousRandomInterval, get_random_value, removeStageClasses, toTitleCase} from "./util";
+import {MATERIAL_TIERS, ObsidianisedSettings} from "./types";
 import {
-	CLICK_INPUT_SPAWN_PERCENTAGES, DEFAULT_SETTINGS,
+	addRandomInterval,
+	continousRandomInterval,
+	get_random_value,
+	hashObject,
+	removeStageClasses,
+	toTitleCase
+} from "./util";
+import {
+	DEFAULT_SETTINGS,
 	ELEMENT_CLICK_REQUIREMENTS,
-	ELEMENT_SPAWN_CHANCE, KEYBOARD_INPUT_SPAWN_PERCENTAGES,
-	LAYOUT_CHANGE_SPAWN_PERCENTAGES, PICKAXE_TIERS
+	CLICK_INPUT_SPAWN_PERCENTAGES, CLICK_INPUT_SPAWN_PERCENTAGES_ALT,
+	ELEMENT_SPAWN_CHANCE, ELEMENT_SPAWN_CHANCE_ALT,
+	KEYBOARD_INPUT_SPAWN_PERCENTAGES, KEYBOARD_INPUT_SPAWN_PERCENTAGES_ALT,
+	LAYOUT_CHANGE_SPAWN_PERCENTAGES, LAYOUT_CHANGE_SPAWN_PERCENTAGES_ALT,
+	PICKAXE_TIERS
 } from "./constants";
 
 export default class ObsidianisedPlugin extends Plugin {
-	settings: ObsidianisedSettings = DEFAULT_SETTINGS;
+	#settings: ObsidianisedSettings = DEFAULT_SETTINGS;
 
 	interactedMap: Map<keyof DocumentEventMap, Map<HTMLElement, { clicks: number, lastClick: number }>> = new Map();
 	keyboardMap: Map<string, { presses: number, lastPress: number }> = new Map();
@@ -23,6 +33,9 @@ export default class ObsidianisedPlugin extends Plugin {
 
 	click_clear_timeout = 10000;
 	click_clear_interval = 5000;
+
+	element_clear_min = 30000;
+	element_clear_max = 60000;
 
 	async onload() {
 		await this.loadSettings();
@@ -76,7 +89,7 @@ export default class ObsidianisedPlugin extends Plugin {
 
 	spawnResource() {
 		const rarityType = get_random_value(this.element_spawn_percentage);
-		if (this.settings.enabledUpgrades['disable' + toTitleCase(rarityType) + 'Generation' as keyof typeof this.settings.enabledUpgrades])
+		if (this.#settings.enabledUpgrades['disable' + toTitleCase(rarityType) + 'Generation' as keyof typeof this.#settings.enabledUpgrades])
 			return;
 
 		const element = document.createElement('div');
@@ -93,7 +106,7 @@ export default class ObsidianisedPlugin extends Plugin {
 
 		addRandomInterval(() => {
 			element.remove();
-		}, 30000, 60000);
+		}, this.element_clear_min, this.element_clear_max);
 
 	}
 
@@ -105,7 +118,7 @@ export default class ObsidianisedPlugin extends Plugin {
 	}
 
 	setPickaxeLevel() {
-		const tierName = PICKAXE_TIERS[this.settings.pickaxeLevel];
+		const tierName = PICKAXE_TIERS[this.#settings.pickaxeLevel];
 		document.documentElement.style.setProperty('--obsidianised-pickaxe', `var(--obsidianised-${tierName.toLowerCase()}-pickaxe)`);
 	}
 
@@ -123,21 +136,27 @@ export default class ObsidianisedPlugin extends Plugin {
 				const settingName = element.parentElement.parentElement!.children[0].children[0].innerText;
 				if (settingName === 'Obsidianised')
 					return;
-				if (settingName === "Upgrade Pickaxe Level")
+				if (settingName.startsWith('Craft'))
 					return;
 			}
 
 			let storedElement = map.get(element);
 			let required_clicks = 0;
 
-			const element_type = element.classList.contains("obsidianised-block") && (element.classList[1] as keyof typeof this.element_click_requirement).split('-')[1] as keyof typeof this.settings.storedResources;
+			const element_type = element.classList.contains("obsidianised-block") && (element.classList[1] as keyof typeof this.element_click_requirement).split('-')[1] as keyof typeof this.#settings.storedResources;
 			if (element_type)
-				required_clicks = this.element_click_requirement[element_type as keyof typeof this.element_click_requirement] - 2 * this.settings.pickaxeLevel;
-			else
-				required_clicks = 5 - this.settings.pickaxeLevel;
+				required_clicks = this.element_click_requirement[element_type as keyof typeof this.element_click_requirement] - 2 * this.#settings.pickaxeLevel;
+			else {
+				if (element.classList.contains("obsidianised-very-dangerous-button"))
+					required_clicks = 100;
+				else
+					required_clicks = 5 - this.#settings.pickaxeLevel;
+			}
 			if (required_clicks <= 1) {
 				if (element_type) {
-					this.settings.storedResources[element_type]++;
+					const settings = this.getSettings();
+					settings.storedResources[element_type]++;
+					this.setSetting("storedResources", settings.storedResources);
 					this.saveSettings();
 					element.remove();
 				}
@@ -150,7 +169,9 @@ export default class ObsidianisedPlugin extends Plugin {
 					storedElement.clicks = 0;
 					storedElement.lastClick = Date.now();
 					if (element_type) {
-						this.settings.storedResources[element_type]++;
+						const settings = this.getSettings();
+						settings.storedResources[element_type]++;
+						this.setSetting("storedResources", settings.storedResources);
 						this.saveSettings();
 						element.remove();
 					} else {
@@ -207,7 +228,10 @@ export default class ObsidianisedPlugin extends Plugin {
 				return;
 
 
-			const required_presses = 5 - this.settings.pickaxeLevel;
+			let required_presses = 5 - this.#settings.pickaxeLevel;
+			if (target.classList.contains("obsidianised-very-dangerous-button"))
+				required_presses = 100;
+
 			if (required_presses <= 1) {
 				this.spawnResources(parseInt(get_random_value(this.keyboard_input_spawn_percentages)));
 				return false;
@@ -240,25 +264,62 @@ export default class ObsidianisedPlugin extends Plugin {
 		this.registerDomEvent(document, 'keydown', unregister, true);
 	}
 
+	async resetSettings() {
+		this.#settings = DEFAULT_SETTINGS;
+		this.app.saveLocalStorage("obsidianised:playerTemp", undefined);
+		await this.saveSettings();
+	}
+
+	getSettings(): ObsidianisedSettings {
+		return structuredClone(this.#settings);
+	}
+
+	setSetting(key: keyof ObsidianisedSettings, value: ObsidianisedSettings[keyof ObsidianisedSettings]) {
+		key === "storedResources" && Object.values(MATERIAL_TIERS).reduce((acc, key) => acc + value[key.toLowerCase() as keyof typeof value] - this.#settings.storedResources[key.toLowerCase() as keyof typeof this.#settings.storedResources], 0) > 1 && this.cleanup();
+		this.#settings[key] = value;
+	}
+
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		this.#settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		if (this.#settings) {
+			if (this.#settings.playerTemp || this.app.loadLocalStorage("obsidianised:playerTemp") === 'true') {
+				this.cleanup();
+			} else if (this.#settings.player !== (this.#settings.player = await hashObject(this.#settings))) {
+				this.cleanup();
+				this.saveSettings();
+			}
+		}
+	}
+
+	cleanup() {
+		this.app.saveLocalStorage("obsidianised:playerTemp", this.#settings.playerTemp = true);
+		this.layout_change_spawn_percentages = LAYOUT_CHANGE_SPAWN_PERCENTAGES_ALT;
+		this.element_spawn_percentage = ELEMENT_SPAWN_CHANCE_ALT;
+		this.click_input_spawn_percentages = CLICK_INPUT_SPAWN_PERCENTAGES_ALT;
+		this.keyboard_input_spawn_percentages = KEYBOARD_INPUT_SPAWN_PERCENTAGES_ALT;
+		this.element_clear_min = 90000;
+		this.element_clear_max = 180000;
 	}
 
 	async saveSettings() {
-		await this.saveData(this.settings);
+		this.#settings.player = await hashObject(this.#settings);
+		await this.saveData(this.#settings);
+		if (this.#settings.unlockedUpgrades.disableStoneGeneration && this.#settings.unlockedUpgrades.disableIronGeneration &&
+			this.#settings.unlockedUpgrades.disableGoldGeneration && this.#settings.unlockedUpgrades.disableDiamondGeneration &&
+			this.#settings.unlockedUpgrades.disableObsidianGeneration && !this.#settings.playerWon) {
 
-		if (this.settings.unlockedUpgrades.disableStoneGeneration && this.settings.unlockedUpgrades.disableIronGeneration &&
-			this.settings.unlockedUpgrades.disableGoldGeneration && this.settings.unlockedUpgrades.disableDiamondGeneration &&
-			this.settings.unlockedUpgrades.disableObsidianGeneration && !this.settings.playerWon) {
-
-			this.settings.playerWon = true;
+			this.#settings.playerWon = true;
 			new Notice("Congratulations, you won this ludicrously stupid and bad game! To preserve your future sanity, the plugin will self-destruct in 10 seconds", 0)
-			await this.saveData(this.settings);
+			await this.saveData(this.#settings);
 
 			setTimeout(() => {
 				this.app.plugins.uninstallPlugin(this.manifest.id);
 			}, 10000);
 		}
+	}
+
+	async onExternalSettingsChange() {
+		await this.loadSettings();
 	}
 }
 

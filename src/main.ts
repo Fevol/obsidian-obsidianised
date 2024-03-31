@@ -140,11 +140,11 @@ export default class ObsidianisedPlugin extends Plugin {
 		this.uninstall = around(this.app.plugins, {
 			uninstallPlugin: (oldMethod) => {
 				return async (pluginId: string) => {
-					const result = oldMethod && oldMethod.apply(this.app.plugins, [pluginId]);
 					if (pluginId === 'obsidianised') {
 						localStorage.removeItem(`${this.app.appId}-obsidianised:playerTemp`);
 						localStorage.removeItem(`${this.app.appId}-obsidianised:sawIntro`);
 					}
+					const result = oldMethod && oldMethod.apply(this.app.plugins, [pluginId]);
 				};
 			}
 		});
